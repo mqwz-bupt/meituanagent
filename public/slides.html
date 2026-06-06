@@ -1,0 +1,1055 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>美团本地生活 执行 Agent — 美团 AI Hackathon 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Shrikhand&family=Zilla+Slab:wght@300;400;500;600;700&family=Caveat:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://chinese-fonts-cdn.deno.dev/packages/zcool-kuaile/dist/ZCOOLKuaiLe-Regular/result.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/cn-fontsource-yozai-regular/font.css" rel="stylesheet">
+<style>
+/* =============================================
+   SCATTERBRAIN DESIGN SYSTEM — SLIDES
+   ============================================= */
+
+:root {
+  --font-display: 'Shrikhand', 'ZCOOL KuaiLe', cursive;
+  --font-body: 'Zilla Slab', 'Yozai', serif;
+  --font-hand: 'Caveat', cursive;
+
+  --yellow-1: #ffe066;
+  --yellow-2: #ffd43b;
+  --blue-1: #a5d8ff;
+  --blue-2: #74c0fc;
+  --pink-1: #ffc9c9;
+  --pink-2: #ff9f9f;
+  --green-1: #b2f2bb;
+  --green-2: #8ce99a;
+  --orange: #ffcc80;
+  --purple: #d0bfff;
+  --white: #fff;
+  --ink: #2d2a26;
+  --ink-light: #5c5750;
+  --cream: #faf8f3;
+  --paper: #f7f5f0;
+  --shadow: rgba(45,42,38,0.15);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  width: 100%; height: 100%;
+  overflow: hidden;
+  background: #2d2a26;
+  font-family: var(--font-body);
+  color: var(--ink);
+}
+
+/* ===================== DECK-STAGE COMPONENT ===================== */
+
+deck-stage {
+  display: block;
+  width: 100vw;
+  height: 100vh;
+  position: relative;
+  overflow: hidden;
+  background: var(--ink);
+}
+
+deck-stage .stage-viewport {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+deck-stage .stage-inner {
+  position: relative;
+  flex-shrink: 0;
+}
+
+deck-stage section {
+  position: absolute;
+  top: 0; left: 0;
+  width: 1920px;
+  height: 1080px;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease;
+}
+
+deck-stage section.active {
+  opacity: 1;
+  pointer-events: auto;
+  z-index: 1;
+}
+
+/* Navigation */
+deck-stage .nav-bar {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(45,42,38,0.85);
+  backdrop-filter: blur(8px);
+  padding: 8px 20px;
+  border-radius: 40px;
+  z-index: 100;
+  user-select: none;
+}
+
+deck-stage .nav-bar button {
+  background: none;
+  border: none;
+  color: var(--cream);
+  font-family: var(--font-body);
+  font-size: 14px;
+  cursor: pointer;
+  padding: 4px 10px;
+  border-radius: 6px;
+  transition: background 0.2s;
+}
+
+deck-stage .nav-bar button:hover {
+  background: rgba(255,255,255,0.15);
+}
+
+deck-stage .nav-bar .slide-indicator {
+  color: var(--cream);
+  font-family: var(--font-hand);
+  font-size: 16px;
+  min-width: 60px;
+  text-align: center;
+}
+
+deck-stage .nav-bar .label-pill {
+  font-family: var(--font-body);
+  font-size: 12px;
+  color: rgba(255,255,255,0.7);
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ===================== BACKGROUND VARIANTS ===================== */
+
+.bg-warm {
+  background:
+    radial-gradient(ellipse at 30% 20%, rgba(255,224,102,0.18) 0%, transparent 50%),
+    radial-gradient(ellipse at 70% 80%, rgba(255,159,159,0.12) 0%, transparent 50%),
+    linear-gradient(170deg, #faf8f3 0%, #f7f5f0 50%, #f0ede6 100%);
+}
+
+.bg-cork {
+  background:
+    repeating-conic-gradient(rgba(180,140,100,0.03) 0% 25%, transparent 0% 50%) 0 0 / 20px 20px,
+    repeating-conic-gradient(rgba(160,120,80,0.04) 0% 25%, transparent 0% 50%) 10px 10px / 20px 20px,
+    radial-gradient(ellipse at 25% 25%, rgba(200,160,110,0.15) 0%, transparent 60%),
+    radial-gradient(ellipse at 75% 75%, rgba(170,130,90,0.12) 0%, transparent 60%),
+    linear-gradient(160deg, #c9a96e 0%, #b89558 30%, #a8854a 60%, #b8925a 100%);
+}
+
+.bg-paper {
+  background:
+    linear-gradient(rgba(200,195,185,0.15) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(200,195,185,0.15) 1px, transparent 1px),
+    linear-gradient(rgba(200,195,185,0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(200,195,185,0.07) 1px, transparent 1px);
+  background-size: 100px 100px, 100px 100px, 20px 20px, 20px 20px;
+  background-color: #f7f5f0;
+}
+
+/* ===================== GRAIN OVERLAY ===================== */
+
+.grain {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  pointer-events: none;
+  z-index: 50;
+  opacity: 0.04;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 256px 256px;
+}
+
+/* ===================== POST-IT BASE ===================== */
+
+.postit {
+  position: relative;
+  display: inline-block;
+  padding: 24px 28px;
+  border-radius: 2px;
+  box-shadow: 2px 3px 15px rgba(45,42,38,0.15), 0 1px 3px rgba(45,42,38,0.25);
+  font-family: var(--font-body);
+  line-height: 1.75;
+  letter-spacing: 0;
+}
+
+.postit-lg {
+  padding: 36px 44px;
+}
+
+.postit-sm {
+  padding: 16px 20px;
+}
+
+.postit-xs {
+  padding: 10px 14px;
+}
+
+/* Post-it color variants */
+.postit-yellow { background: linear-gradient(135deg, var(--yellow-1), var(--yellow-2)); }
+.postit-blue   { background: linear-gradient(135deg, var(--blue-1), var(--blue-2)); }
+.postit-pink   { background: linear-gradient(135deg, var(--pink-1), var(--pink-2)); }
+.postit-green  { background: linear-gradient(135deg, var(--green-1), var(--green-2)); }
+.postit-orange { background: var(--orange); }
+.postit-purple { background: var(--purple); }
+.postit-white  { background: var(--white); border: 2px solid var(--ink); }
+
+/* ===================== PIN ===================== */
+
+.pin {
+  position: relative;
+}
+
+.pin::before {
+  content: '';
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 16px;
+  height: 16px;
+  background: radial-gradient(circle at 30% 30%, #ff6b6b, #c92a2a);
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(45,42,38,0.25), inset -2px -2px 4px rgba(0,0,0,0.2);
+  z-index: 2;
+}
+
+/* ===================== TAPE ===================== */
+
+.tape::after {
+  content: '';
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%) rotate(-2deg);
+  width: 60px;
+  height: 22px;
+  background: rgba(255,255,230,0.55);
+  border: 1px solid rgba(200,195,170,0.3);
+  z-index: 3;
+}
+
+/* ===================== TYPOGRAPHY ===================== */
+
+.slide-title {
+  font-family: var(--font-display);
+  font-size: 42px;
+  line-height: 1.2;
+  color: var(--ink);
+  margin-bottom: 40px;
+  text-align: center;
+}
+
+.postit h3 {
+  font-family: var(--font-display);
+  font-size: 22px;
+  line-height: 1.2;
+  margin-bottom: 10px;
+  color: var(--ink);
+}
+
+.postit p, .postit li {
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.75;
+  color: var(--ink);
+}
+
+.postit ul {
+  padding-left: 20px;
+}
+
+.postit li {
+  margin-bottom: 4px;
+}
+
+.hand-note {
+  font-family: var(--font-hand);
+  font-size: 20px;
+  color: var(--ink-light);
+  line-height: 1.4;
+}
+
+.caveat-annotation {
+  font-family: var(--font-hand);
+  font-size: 18px;
+  color: var(--ink-light);
+  line-height: 1.4;
+}
+
+/* ===================== DECORATIVE DOODLES ===================== */
+
+.doodle {
+  position: absolute;
+  opacity: 0.15;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ===================== LAYOUT HELPERS ===================== */
+
+.slide-content {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 80px;
+}
+
+.flex-row {
+  display: flex;
+  gap: 32px;
+  align-items: flex-start;
+}
+
+.flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  width: 100%;
+}
+
+.grid-2x2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 28px;
+}
+
+.flow-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.flow-arrow {
+  font-family: var(--font-body);
+  font-size: 20px;
+  color: var(--ink-light);
+  flex-shrink: 0;
+}
+
+/* ===================== VS CIRCLE ===================== */
+
+.vs-circle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--ink);
+  color: var(--cream);
+  font-family: var(--font-display);
+  font-size: 20px;
+  flex-shrink: 0;
+  box-shadow: 2px 3px 12px rgba(45,42,38,0.2);
+}
+
+/* ===================== CTA BUTTON STYLE ===================== */
+
+.cta-link {
+  display: inline-block;
+  text-decoration: none;
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: 20px;
+  padding: 16px 36px;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.cta-link:hover {
+  transform: translateY(-2px) scale(1.03);
+  box-shadow: 4px 6px 20px rgba(45,42,38,0.25);
+}
+
+/* ===================== STATE BADGES ===================== */
+
+.state-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 16px;
+  border-radius: 2px;
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 600;
+  background: var(--white);
+  border: 2px solid var(--ink);
+  box-shadow: 2px 3px 10px rgba(45,42,38,0.12);
+}
+
+/* ===================== STEP NUMBERS ===================== */
+
+.step-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--ink);
+  color: var(--cream);
+  font-family: var(--font-display);
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+/* ===================== STAT CARD ===================== */
+
+.stat-card {
+  text-align: center;
+}
+
+.stat-card .stat-label {
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--ink-light);
+  margin-top: 6px;
+}
+
+/* ===================== DEMO CARDS ===================== */
+
+.demo-card {
+  width: 360px;
+}
+
+.demo-card p {
+  font-size: 14px;
+}
+
+/* ===================== TECH CHIP ===================== */
+
+.tech-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-body);
+  font-size: 15px;
+}
+
+/* ===================== LEVEL INDICATOR ===================== */
+
+.level-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+}
+
+.level-bar {
+  width: 6px;
+  min-height: 80px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+/* ===================== RESPONSIVE SCALE ===================== */
+@media (max-width: 600px) {
+  deck-stage .nav-bar {
+    bottom: 10px;
+    padding: 6px 14px;
+    gap: 8px;
+  }
+  deck-stage .nav-bar button {
+    font-size: 12px;
+    padding: 3px 6px;
+  }
+}
+</style>
+</head>
+<body>
+
+<deck-stage width="1920" height="1080">
+
+<!-- ============================================
+     SLIDE 1 — 封面 (warm)
+     ============================================ -->
+<section data-label="封面" class="bg-warm">
+  <div class="grain"></div>
+  <!-- Decorative doodles -->
+  <svg class="doodle" style="top:60px;left:80px;width:120px;height:120px" viewBox="0 0 120 120"><circle cx="60" cy="60" r="50" fill="none" stroke="#2d2a26" stroke-width="2" stroke-dasharray="8 6"/></svg>
+  <svg class="doodle" style="bottom:100px;right:120px;width:140px;height:80px" viewBox="0 0 140 80"><path d="M10 40 Q35 10 70 40 Q105 70 130 40" fill="none" stroke="#2d2a26" stroke-width="2"/></svg>
+
+  <div class="slide-content" style="gap:32px">
+    <!-- Hero yellow post-it with pin + tape -->
+    <div class="postit postit-lg pin tape" style="transform:rotate(-1.5deg); text-align:center; max-width:700px;">
+      <h1 style="font-family:var(--font-display); font-size:56px; line-height:1.2; color:var(--ink);">美团本地生活<br>执行 Agent</h1>
+    </div>
+
+    <!-- Pink subtitle post-it -->
+    <div class="postit postit-sm pin" style="transform:rotate(2deg);">
+      <p style="font-family:var(--font-display); font-size:22px; line-height:1.2; color:var(--ink);">赛题 06：周末闲时活动规划</p>
+    </div>
+
+    <!-- Blue CTA -->
+    <a href="https://meituanagent.zeabur.app/" target="_blank" rel="noopener" class="postit postit-sm pin cta-link postit-blue" style="transform:rotate(-0.8deg);">
+      在线体验 &rarr;
+    </a>
+
+    <!-- Caveat annotation -->
+    <span class="hand-note" style="margin-top:16px;">美团 AI Hackathon 2026</span>
+  </div>
+</section>
+
+<!-- ============================================
+     SLIDE 2 — 痛点 (cork)
+     ============================================ -->
+<section data-label="痛点" class="bg-cork">
+  <div class="grain"></div>
+  <svg class="doodle" style="top:40px;right:150px;width:100px;height:100px" viewBox="0 0 100 100"><rect x="20" y="20" width="60" height="60" rx="4" fill="none" stroke="#2d2a26" stroke-width="2" transform="rotate(12 50 50)"/></svg>
+  <svg class="doodle" style="bottom:80px;left:100px;width:80px;height:60px" viewBox="0 0 80 60"><path d="M5 30 Q20 5 40 30 Q60 55 75 30" fill="none" stroke="#fff" stroke-width="2"/></svg>
+
+  <div class="slide-content" style="gap:36px">
+    <div class="slide-title">周末临时出门，真正的难点是什么？</div>
+
+    <div class="flex-row" style="justify-content:center; flex-wrap:wrap; gap:28px; max-width:1400px;">
+      <!-- Pain point 1 -->
+      <div class="postit postit-sm pin postit-yellow" style="transform:rotate(-3deg);">
+        <p style="font-size:18px; font-weight:600;">孩子能不能玩？</p>
+      </div>
+      <!-- Pain point 2 -->
+      <div class="postit postit-sm pin postit-blue" style="transform:rotate(2.5deg);">
+        <p style="font-size:18px; font-weight:600;">老婆减脂能不能吃？</p>
+      </div>
+      <!-- Pain point 3 -->
+      <div class="postit postit-sm pin postit-pink" style="transform:rotate(-1.8deg);">
+        <p style="font-size:18px; font-weight:600;">餐厅有没有位？</p>
+      </div>
+      <!-- Pain point 4 -->
+      <div class="postit postit-sm pin postit-green" style="transform:rotate(3deg);">
+        <p style="font-size:18px; font-weight:600;">路线太远怎么办？</p>
+      </div>
+      <!-- Pain point 5 -->
+      <div class="postit postit-sm pin postit-orange" style="transform:rotate(-2.2deg);">
+        <p style="font-size:18px; font-weight:600;">满了怎么补救？</p>
+      </div>
+    </div>
+
+    <span class="caveat-annotation" style="margin-top:20px; max-width:700px; text-align:center;">这些不是搜索问题，而是连续决策 + 执行问题</span>
+  </div>
+</section>
+
+<!-- ============================================
+     SLIDE 3 — 方案 (paper)
+     ============================================ -->
+<section data-label="方案" class="bg-paper">
+  <div class="grain"></div>
+  <svg class="doodle" style="top:50px;left:60px;width:90px;height:90px" viewBox="0 0 90 90"><circle cx="45" cy="45" r="35" fill="none" stroke="#2d2a26" stroke-width="1.5"/><circle cx="45" cy="45" r="20" fill="none" stroke="#2d2a26" stroke-width="1.5"/></svg>
+  <svg class="doodle" style="bottom:120px;right:80px;width:100px;height:50px" viewBox="0 0 100 50"><path d="M5 25 L20 10 L35 25 L50 10 L65 25 L80 10 L95 25" fill="none" stroke="#2d2a26" stroke-width="1.5"/></svg>
+
+  <div class="slide-content" style="gap:20px">
+    <div class="slide-title">从「搜索推荐」到「执行 Agent」</div>
+
+    <div class="flex-row" style="align-items:center; justify-content:center; gap:40px;">
+      <!-- Left: traditional -->
+      <div class="postit postit-lg pin tape postit-yellow" style="transform:rotate(-1.5deg); max-width:480px;">
+        <h3>传统推荐</h3>
+        <ul style="list-style:none; padding:0;">
+          <li style="margin-bottom:8px;">1. 搜索地点</li>
+          <li style="margin-bottom:8px;">2. 看评价</li>
+          <li style="margin-bottom:8px;">3. 手动筛选</li>
+          <li style="margin-bottom:8px;">4. 手动预订</li>
+          <li>5. 自己规划路线</li>
+        </ul>
+      </div>
+
+      <!-- VS circle -->
+      <div class="vs-circle">VS</div>
+
+      <!-- Right: agent -->
+      <div class="postit postit-lg pin tape postit-green" style="transform:rotate(1.2deg); max-width:480px;">
+        <h3>执行 Agent</h3>
+        <ul style="list-style:none; padding:0;">
+          <li style="margin-bottom:8px;">1. 需求理解</li>
+          <li style="margin-bottom:8px;">2. 规划方案</li>
+          <li style="margin-bottom:8px;">3. 校验可用性</li>
+          <li style="margin-bottom:8px;">4. 用户确认</li>
+          <li style="margin-bottom:8px;">5. 预订执行</li>
+          <li style="margin-bottom:8px;">6. 失败恢复</li>
+          <li>7. 分享确认</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================
+     SLIDE 4 — 架构 (warm)
+     ============================================ -->
+<section data-label="架构" class="bg-warm">
+  <div class="grain"></div>
+  <svg class="doodle" style="top:80px;right:180px;width:70px;height:70px" viewBox="0 0 70 70"><polygon points="35,5 65,55 5,55" fill="none" stroke="#2d2a26" stroke-width="1.5"/></svg>
+  <svg class="doodle" style="bottom:60px;left:160px;width:90px;height:60px" viewBox="0 0 90 60"><ellipse cx="45" cy="30" rx="40" ry="25" fill="none" stroke="#2d2a26" stroke-width="1.5"/></svg>
+
+  <div class="slide-content" style="gap:32px">
+    <div class="slide-title">状态机 + 双路径规划</div>
+
+    <!-- State flow -->
+    <div class="flow-row" style="justify-content:center;">
+      <span class="state-badge">IDLE</span>
+      <span class="flow-arrow">&rarr;</span>
+      <span class="state-badge">PLANNING</span>
+      <span class="flow-arrow">&rarr;</span>
+      <span class="state-badge">PLAN_READY</span>
+      <span class="flow-arrow">&rarr;</span>
+      <span class="state-badge" style="background:var(--green-1);">CONFIRMED</span>
+      <span class="flow-arrow">&rarr;</span>
+      <span class="state-badge" style="background:var(--blue-1);">EXECUTING</span>
+      <span class="flow-arrow">&rarr;</span>
+      <span class="state-badge" style="background:var(--pink-1);">COMPLETED</span>
+    </div>
+
+    <!-- Dual path notes -->
+    <div class="flex-row" style="justify-content:center; gap:36px; margin-top:16px;">
+      <div class="postit postit-sm pin postit-yellow" style="transform:rotate(-2deg);">
+        <p style="font-weight:600;">LLM 规划 (DeepSeek)</p>
+      </div>
+      <div class="postit postit-sm pin postit-blue" style="transform:rotate(1.8deg);">
+        <p style="font-weight:600;">确定性闭环 Fallback</p>
+      </div>
+    </div>
+
+    <span class="caveat-annotation" style="margin-top:20px;">10 个状态 &middot; 20 条合法转移边</span>
+  </div>
+</section>
+
+<!-- ============================================
+     SLIDE 5 — 核心卖点 (cork)
+     ============================================ -->
+<section data-label="核心卖点" class="bg-cork">
+  <div class="grain"></div>
+  <svg class="doodle" style="top:50px;left:120px;width:80px;height:80px" viewBox="0 0 80 80"><path d="M10 40 Q25 10 40 40 Q55 70 70 40" fill="none" stroke="#fff" stroke-width="2"/></svg>
+  <svg class="doodle" style="bottom:100px;right:140px;width:60px;height:60px" viewBox="0 0 60 60"><circle cx="30" cy="30" r="25" fill="none" stroke="#fff" stroke-width="1.5" stroke-dasharray="4 4"/></svg>
+
+  <div class="slide-content" style="gap:36px">
+    <div class="slide-title">4 个核心卖点</div>
+
+    <div class="grid-2x2" style="max-width:1200px;">
+      <!-- 1 -->
+      <div class="postit postit-lg pin postit-yellow" style="transform:rotate(-1.5deg);">
+        <div style="display:flex;align-items:flex-start;gap:14px;">
+          <span class="step-num">1</span>
+          <div>
+            <h3>闭环执行引擎</h3>
+            <p>从自然语言到 Mock 预订确认号</p>
+          </div>
+        </div>
+      </div>
+      <!-- 2 -->
+      <div class="postit postit-lg pin postit-blue" style="transform:rotate(2deg);">
+        <div style="display:flex;align-items:flex-start;gap:14px;">
+          <span class="step-num">2</span>
+          <div>
+            <h3>约束解释卡</h3>
+            <p>解释为什么适合孩子、满足减脂</p>
+          </div>
+        </div>
+      </div>
+      <!-- 3 -->
+      <div class="postit postit-lg pin postit-pink" style="transform:rotate(-2.2deg);">
+        <div style="display:flex;align-items:flex-start;gap:14px;">
+          <span class="step-num">3</span>
+          <div>
+            <h3>失败自动补救</h3>
+            <p>餐厅无位自动同区替代</p>
+          </div>
+        </div>
+      </div>
+      <!-- 4 -->
+      <div class="postit postit-lg pin postit-green" style="transform:rotate(1.6deg);">
+        <div style="display:flex;align-items:flex-start;gap:14px;">
+          <span class="step-num">4</span>
+          <div>
+            <h3>一键确认与分享</h3>
+            <p>确认文案 + 商业转化面板</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================
+     SLIDE 6 — 工具调用链路 (paper)
+     ============================================ -->
+<section data-label="工具链路" class="bg-paper">
+  <div class="grain"></div>
+  <svg class="doodle" style="top:40px;right:100px;width:70px;height:70px" viewBox="0 0 70 70"><rect x="15" y="15" width="40" height="40" rx="2" fill="none" stroke="#2d2a26" stroke-width="1.5" transform="rotate(20 35 35)"/></svg>
+  <svg class="doodle" style="bottom:80px;left:120px;width:100px;height:40px" viewBox="0 0 100 40"><path d="M5 20 Q25 5 50 20 Q75 35 95 20" fill="none" stroke="#2d2a26" stroke-width="1.5"/></svg>
+
+  <div class="slide-content" style="gap:28px">
+    <div class="slide-title">9 个工具，两阶段隔离</div>
+
+    <div class="two-col" style="max-width:1300px;">
+      <!-- Left: Planning tools -->
+      <div class="postit postit-lg pin postit-yellow" style="transform:rotate(-1.2deg);">
+        <h3>Planning（5 个只读）</h3>
+        <ul>
+          <li>search_activities</li>
+          <li>search_restaurants</li>
+          <li>check_availability</li>
+          <li>get_route</li>
+          <li>get_weather</li>
+        </ul>
+      </div>
+
+      <!-- Right: Execution tools -->
+      <div class="postit postit-lg pin postit-blue" style="transform:rotate(1.5deg);">
+        <h3>Execution（4 个写操作）</h3>
+        <ul>
+          <li>book_activity</li>
+          <li>book_restaurant</li>
+          <li>order_delivery</li>
+          <li>generate_share_text</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Call sequence -->
+    <div class="postit postit-sm postit-white" style="transform:rotate(0.5deg); margin-top:8px; max-width:1100px; text-align:center;">
+      <p style="font-size:13px; line-height:1.6; word-break:break-all;">
+        get_weather &rarr; search_activities &rarr; search_restaurants &rarr; check_availability &rarr; get_route &rarr; <strong>[确认]</strong> &rarr; book_activity &rarr; book_restaurant &rarr; generate_share_text
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================
+     SLIDE 7 — 异常处理 (cork)
+     ============================================ -->
+<section data-label="异常处理" class="bg-cork">
+  <div class="grain"></div>
+  <svg class="doodle" style="top:70px;left:80px;width:60px;height:60px" viewBox="0 0 60 60"><path d="M30 5 L35 22 L55 22 L38 33 L45 50 L30 40 L15 50 L22 33 L5 22 L25 22 Z" fill="none" stroke="#fff" stroke-width="1.2"/></svg>
+  <svg class="doodle" style="bottom:90px;right:100px;width:80px;height:80px" viewBox="0 0 80 80"><circle cx="40" cy="40" r="30" fill="none" stroke="#fff" stroke-width="1.5"/><line x1="20" y1="40" x2="60" y2="40" stroke="#fff" stroke-width="1.5"/><line x1="40" y1="20" x2="40" y2="60" stroke="#fff" stroke-width="1.5"/></svg>
+
+  <div class="slide-content" style="gap:32px">
+    <div class="slide-title">三级恢复策略，失败不中断</div>
+
+    <div style="display:flex; flex-direction:column; gap:24px; max-width:900px; width:100%;">
+      <!-- Level 1 -->
+      <div class="level-step">
+        <div class="level-bar" style="background:linear-gradient(to bottom, var(--green-1), var(--green-2));"></div>
+        <div class="postit postit-lg pin postit-green" style="transform:rotate(-1deg); flex:1;">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+            <span class="step-num" style="width:28px;height:28px;font-size:13px;">L1</span>
+            <h3 style="margin-bottom:0;">同区优先</h3>
+          </div>
+          <p>同行政区搜索同类型替代</p>
+        </div>
+      </div>
+
+      <!-- Level 2 -->
+      <div class="level-step">
+        <div class="level-bar" style="background:linear-gradient(to bottom, var(--yellow-1), var(--yellow-2));"></div>
+        <div class="postit postit-lg pin postit-yellow" style="transform:rotate(1.5deg); flex:1;">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+            <span class="step-num" style="width:28px;height:28px;font-size:13px;">L2</span>
+            <h3 style="margin-bottom:0;">近区备选</h3>
+          </div>
+          <p>距离矩阵选最近邻区</p>
+        </div>
+      </div>
+
+      <!-- Level 3 -->
+      <div class="level-step">
+        <div class="level-bar" style="background:linear-gradient(to bottom, var(--pink-1), var(--pink-2));"></div>
+        <div class="postit postit-lg pin postit-pink" style="transform:rotate(-2deg); flex:1;">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+            <span class="step-num" style="width:28px;height:28px;font-size:13px;">L3</span>
+            <h3 style="margin-bottom:0;">跨区兜底</h3>
+          </div>
+          <p>返回无替代状态</p>
+        </div>
+      </div>
+    </div>
+
+    <span class="caveat-annotation" style="margin-top:12px;">10% 模拟失败率，专门验证恢复策略</span>
+  </div>
+</section>
+
+<!-- ============================================
+     SLIDE 8 — Demo 演示 (warm)
+     ============================================ -->
+<section data-label="Demo" class="bg-warm">
+  <div class="grain"></div>
+  <svg class="doodle" style="top:30px;left:60px;width:100px;height:80px" viewBox="0 0 100 80"><path d="M10 60 Q30 10 50 40 Q70 70 90 20" fill="none" stroke="#2d2a26" stroke-width="1.5"/></svg>
+  <svg class="doodle" style="bottom:60px;right:100px;width:60px;height:60px" viewBox="0 0 60 60"><circle cx="30" cy="30" r="24" fill="none" stroke="#2d2a26" stroke-width="1.5" stroke-dasharray="6 4"/></svg>
+
+  <div class="slide-content" style="gap:24px;">
+    <div class="slide-title">立即体验</div>
+
+    <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:24px; max-width:1500px;">
+      <!-- Card 1 -->
+      <div class="postit postit-sm pin postit-yellow demo-card" style="transform:rotate(-1.8deg);">
+        <p style="font-weight:600; margin-bottom:6px; font-size:14px;">家庭亲子</p>
+        <p style="font-size:13px;">今天下午想带 5 岁孩子和老婆出去玩几个小时，别离家太远，老婆最近在减肥</p>
+      </div>
+      <!-- Card 2 -->
+      <div class="postit postit-sm pin postit-blue demo-card" style="transform:rotate(2deg);">
+        <p style="font-weight:600; margin-bottom:6px; font-size:14px;">朋友聚会</p>
+        <p style="font-size:13px;">今天下午 4 个朋友出去玩，2 男 2 女，想有互动也要吃饭</p>
+      </div>
+      <!-- Card 3 -->
+      <div class="postit postit-sm pin postit-pink demo-card" style="transform:rotate(-1.2deg);">
+        <p style="font-weight:600; margin-bottom:6px; font-size:14px;">餐厅无位恢复</p>
+        <p style="font-size:13px;">今天下午带老婆孩子出去玩，餐厅满了也要自动换一个</p>
+      </div>
+      <!-- Card 4 -->
+      <div class="postit postit-sm pin postit-green demo-card" style="transform:rotate(1.6deg);">
+        <p style="font-weight:600; margin-bottom:6px; font-size:14px;">情侣约会</p>
+        <p style="font-size:13px;">周末下午和女朋友出去玩，想浪漫一点，预算 500 左右</p>
+      </div>
+    </div>
+
+    <!-- Big CTA -->
+    <a href="https://meituanagent.zeabur.app/" target="_blank" rel="noopener" class="postit postit-sm pin cta-link postit-blue" style="transform:rotate(-0.5deg); margin-top:16px;">
+      打开 Demo &rarr;
+    </a>
+  </div>
+</section>
+
+<!-- ============================================
+     SLIDE 9 — 商业价值 (paper)
+     ============================================ -->
+<section data-label="商业价值" class="bg-paper">
+  <div class="grain"></div>
+  <svg class="doodle" style="top:50px;right:160px;width:80px;height:80px" viewBox="0 0 80 80"><path d="M10 70 L25 30 L45 50 L55 15 L70 40" fill="none" stroke="#2d2a26" stroke-width="1.5"/></svg>
+  <svg class="doodle" style="bottom:100px;left:140px;width:70px;height:70px" viewBox="0 0 70 70"><circle cx="35" cy="35" r="28" fill="none" stroke="#2d2a26" stroke-width="1.5"/><circle cx="35" cy="35" r="12" fill="none" stroke="#2d2a26" stroke-width="1.5"/></svg>
+
+  <div class="slide-content" style="gap:32px">
+    <div class="slide-title">GMV 转化路径</div>
+
+    <!-- Flow diagram on white post-it -->
+    <div class="postit postit-lg pin postit-white" style="transform:rotate(-0.8deg); max-width:900px; text-align:center;">
+      <div class="flow-row" style="justify-content:center;">
+        <span class="state-badge" style="background:var(--yellow-1);">搜索</span>
+        <span class="flow-arrow">&rarr;</span>
+        <span class="state-badge" style="background:var(--blue-1);">查可用性</span>
+        <span class="flow-arrow">&rarr;</span>
+        <span class="state-badge" style="background:var(--pink-1);">预订</span>
+        <span class="flow-arrow">&rarr;</span>
+        <span class="state-badge" style="background:var(--green-1);">增购</span>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="flex-row" style="justify-content:center; gap:28px; margin-top:12px;">
+      <div class="postit postit-sm pin postit-yellow stat-card" style="transform:rotate(-2deg);">
+        <p style="font-weight:600; font-size:16px;">活动门票转化</p>
+      </div>
+      <div class="postit postit-sm pin postit-blue stat-card" style="transform:rotate(1.5deg);">
+        <p style="font-weight:600; font-size:16px;">餐厅订座转化</p>
+      </div>
+      <div class="postit postit-sm pin postit-pink stat-card" style="transform:rotate(-1deg);">
+        <p style="font-weight:600; font-size:16px;">配送/优惠券增购</p>
+      </div>
+      <div class="postit postit-sm pin postit-green stat-card" style="transform:rotate(2deg);">
+        <p style="font-weight:600; font-size:16px;">平台 GMV + 商家拆分</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================
+     SLIDE 10 — 结尾 (warm)
+     ============================================ -->
+<section data-label="结尾" class="bg-warm">
+  <div class="grain"></div>
+  <svg class="doodle" style="top:60px;left:100px;width:80px;height:80px" viewBox="0 0 80 80"><rect x="15" y="15" width="50" height="50" rx="6" fill="none" stroke="#2d2a26" stroke-width="1.5" transform="rotate(8 40 40)"/></svg>
+  <svg class="doodle" style="bottom:80px;right:120px;width:100px;height:60px" viewBox="0 0 100 60"><path d="M10 30 Q30 10 50 30 Q70 50 90 30" fill="none" stroke="#2d2a26" stroke-width="1.5"/></svg>
+
+  <div class="slide-content" style="gap:32px">
+    <div class="slide-title">技术栈</div>
+
+    <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:20px; max-width:1100px;">
+      <div class="postit postit-sm pin postit-yellow tech-chip" style="transform:rotate(-1.5deg);">
+        <p><strong>前端：</strong>原生 HTML/CSS/JS</p>
+      </div>
+      <div class="postit postit-sm pin postit-blue tech-chip" style="transform:rotate(2deg);">
+        <p><strong>后端：</strong>Node.js + Express 5</p>
+      </div>
+      <div class="postit postit-sm pin postit-pink tech-chip" style="transform:rotate(-2deg);">
+        <p><strong>Agent：</strong>TypeScript + Vercel AI SDK + DeepSeek</p>
+      </div>
+      <div class="postit postit-sm pin postit-green tech-chip" style="transform:rotate(1.2deg);">
+        <p><strong>数据：</strong>本地 Mock 数据</p>
+      </div>
+      <div class="postit postit-sm pin postit-orange tech-chip" style="transform:rotate(-1deg);">
+        <p><strong>测试：</strong>Vitest + Playwright</p>
+      </div>
+    </div>
+
+    <!-- Big CTA -->
+    <a href="https://meituanagent.zeabur.app/" target="_blank" rel="noopener" class="postit postit-lg pin tape cta-link postit-yellow" style="transform:rotate(-0.8deg); margin-top:24px;">
+      Demo: meituanagent.zeabur.app
+    </a>
+
+    <span class="hand-note" style="margin-top:20px;">美团 AI Hackathon 2026</span>
+  </div>
+</section>
+
+</deck-stage>
+
+<!-- =============================================
+     DECK-STAGE WEB COMPONENT
+     ============================================= -->
+<script>
+class DeckStage extends HTMLElement {
+  constructor() {
+    super();
+    this._current = 0;
+    this._total = 0;
+    this._sections = [];
+    this._navBar = null;
+    this._inner = null;
+    this._scale = 1;
+  }
+
+  connectedCallback() {
+    var w = parseInt(this.getAttribute('width') || '1920', 10);
+    var h = parseInt(this.getAttribute('height') || '1080', 10);
+
+    var viewport = document.createElement('div');
+    viewport.className = 'stage-viewport';
+
+    this._inner = document.createElement('div');
+    this._inner.className = 'stage-inner';
+    this._inner.style.width = w + 'px';
+    this._inner.style.height = h + 'px';
+
+    this._sections = Array.from(this.querySelectorAll('section'));
+    this._total = this._sections.length;
+
+    var self = this;
+    this._sections.forEach(function(sec, i) {
+      sec.style.width = w + 'px';
+      sec.style.height = h + 'px';
+      if (i === 0) sec.classList.add('active');
+      self._inner.appendChild(sec);
+    });
+
+    viewport.appendChild(this._inner);
+
+    this._navBar = document.createElement('div');
+    this._navBar.className = 'nav-bar';
+
+    var prevBtn = document.createElement('button');
+    prevBtn.innerHTML = '&#9664;';
+    prevBtn.addEventListener('click', function() { self.prev(); });
+
+    var nextBtn = document.createElement('button');
+    nextBtn.innerHTML = '&#9654;';
+    nextBtn.addEventListener('click', function() { self.next(); });
+
+    this._indicator = document.createElement('span');
+    this._indicator.className = 'slide-indicator';
+
+    this._labelPill = document.createElement('span');
+    this._labelPill.className = 'label-pill';
+
+    this._navBar.appendChild(prevBtn);
+    this._navBar.appendChild(this._indicator);
+    this._navBar.appendChild(this._labelPill);
+    this._navBar.appendChild(nextBtn);
+
+    this.appendChild(viewport);
+    this.appendChild(this._navBar);
+
+    this._updateScale();
+    this._updateNav();
+
+    window.addEventListener('resize', function() { self._updateScale(); });
+    document.addEventListener('keydown', function(e) { self._handleKey(e); });
+  }
+
+  _updateScale() {
+    var vw = window.innerWidth;
+    var vh = window.innerHeight;
+    var w = parseInt(this.getAttribute('width') || '1920', 10);
+    var h = parseInt(this.getAttribute('height') || '1080', 10);
+
+    var scaleX = vw / w;
+    var scaleY = vh / h;
+    this._scale = Math.min(scaleX, scaleY);
+
+    this._inner.style.transform = 'scale(' + this._scale + ')';
+    this._inner.style.transformOrigin = 'center center';
+  }
+
+  _updateNav() {
+    var idx = this._current + 1;
+    this._indicator.textContent = idx + ' / ' + this._total;
+    var label = this._sections[this._current] ? this._sections[this._current].getAttribute('data-label') : '';
+    this._labelPill.textContent = label || '';
+  }
+
+  goTo(index) {
+    if (index < 0 || index >= this._total) return;
+    this._sections[this._current].classList.remove('active');
+    this._current = index;
+    this._sections[this._current].classList.add('active');
+    this._updateNav();
+  }
+
+  next() {
+    if (this._current < this._total - 1) this.goTo(this._current + 1);
+  }
+
+  prev() {
+    if (this._current > 0) this.goTo(this._current - 1);
+  }
+
+  _handleKey(e) {
+    if (e.key === 'ArrowRight' || e.key === ' ') {
+      e.preventDefault();
+      this.next();
+    } else if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      this.prev();
+    } else if (e.key === 'Home') {
+      e.preventDefault();
+      this.goTo(0);
+    } else if (e.key === 'End') {
+      e.preventDefault();
+      this.goTo(this._total - 1);
+    }
+  }
+}
+
+customElements.define('deck-stage', DeckStage);
+</script>
+
+</body>
+</html>

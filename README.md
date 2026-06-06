@@ -2,7 +2,7 @@
 
 > 赛题 06：本地探索——周末闲时活动规划 | 美团 AI Hackathon
 
-**在线体验：[https://meituanagent.zeabur.app/](https://meituanagent.zeabur.app/)** | **设计文档：[docs/hackathon-demo-brief.md](docs/hackathon-demo-brief.md)**
+**在线体验：[https://meituanagent.zeabur.app/](https://meituanagent.zeabur.app/)** | **项目介绍：[slides](https://meituanagent.zeabur.app/slides.html)** | **设计文档：[docs/hackathon-demo-brief.md](docs/hackathon-demo-brief.md)**
 
 一句话定位：把”今天下午想出去玩几个小时”变成可执行的本地生活订单链路。
 
