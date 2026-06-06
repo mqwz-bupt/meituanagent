@@ -1,62 +1,76 @@
-# 本地探索周末闲时活动规划 Agent：评委版设计文档
+# 本地探索周末闲时活动规划 Agent — 设计文档
 
-## 项目一句话
+## 项目概述
 
-一个把“今天下午想出去玩几个小时”变成可执行本地生活订单链路的 Agent：它不仅推荐地点，还会规划 4-6 小时路线、查餐厅/活动可用性、确认后执行 Mock 预约/下单，并生成可直接发给家人或朋友的消息。
+一个把"今天下午想出去玩几个小时"变成可执行本地生活订单链路的 Agent：它不仅推荐地点，还会规划 4-6 小时路线、查餐厅/活动可用性、确认后执行 Mock 预约/下单，并生成可直接发给家人或朋友的消息。
 
-## 用户痛点
+## 一、Planning 策略
 
-周末临时出门不是单点搜索问题，而是连续决策问题：去哪玩、孩子是否适合、伴侣饮食目标是否冲突、朋友人数是否能成局、餐厅有没有位、路程是否太远、是否需要预约。传统推荐工具只给候选项，用户仍要自己拼接、核验和沟通。
+### 双路径规划架构
 
-## 核心创新
+系统采用 **LLM 规划 + 确定性闭环 Fallback** 双路径设计：
 
-- 从“搜索推荐”升级为“本地生活执行 Agent”：规划、核验、确认、执行、分享一条链路。
-- 同时覆盖家庭和朋友两类高频场景：家庭强调 5 岁孩子、减脂、距离；朋友强调 4 人互动、聚餐、预算和氛围。
-- 演示工具调用时间线，让评委看到每个关键动作不是纯文案，而是 Mock API 返回的结构化结果。
+- **LLM 路径**：使用 DeepSeek 模型 + Vercel AI SDK `streamText` 进行流式推理，通过 Plan-and-Solve 五阶段提示词（明确→研究→优化→呈现→执行）驱动工具调用。`stopWhen: stepCountIs(15)` 限制最大推理轮次，Zod schema 提取结构化 Plan，失败时 fallback 到正则解析。
+- **确定性闭环路径**（`closed-loop.ts`）：不依赖 LLM，通过 `extractConstraints` 从用户文本提取结构化约束（场景、人数、儿童年龄、饮食需求等），再用评分函数选活动/选餐厅/算路线。当 LLM 未调用必要工具时自动触发。
 
-## Planning 策略
+### 状态机驱动的会话生命周期
 
-Planner 先抽取场景和约束，再按固定顺序调用工具：
+10 个状态节点、约 20 条合法转移边，覆盖从 IDLE 到 COMPLETED 的完整流程：
 
 ```text
-get_weather -> search_activities -> search_restaurants -> check_availability -> get_route
+IDLE → PLANNING → PLAN_READY → USER_CONFIRMING → CONFIRMED → EXECUTING → BOOKING_COMPLETE → COMPLETED
+                                    ↕ REVISED                              ↘ FAILED_WITH_RECOVERY_OPTIONS
 ```
 
-约束优先级：
+`VALID_TRANSITIONS` 表严格约束每条边，非法转移被拒绝并返回错误信息（如 EXECUTING 状态拒绝新消息）。
 
-1. 安全和适配：孩子年龄、活动最低年龄、人数上下限。
-2. 硬边界：4-6 小时、距离不远、预算。
-3. 体验质量：餐前/餐后顺序、步行或打车衔接、分享文案可读。
+### 约束优先级与地理聚类
 
-## Tool 调用链路
+选址评分遵循三级约束：①安全适配（孩子年龄、活动最低年龄、人数上下限）> ②硬边界（4-6 小时、距离、预算）> ③体验质量（餐前/餐后顺序、步行衔接）。地理聚类引擎（`district.ts`）将北京 50+ 商圈映射到 12 个行政区，使用 12×12 预计算距离矩阵确保活动与餐厅同区优先。
 
-Planning tools:
+## 二、工具调用链路
 
-- `search_activities`: 按亲子、朋友、年龄、人数、距离、价格筛选活动。
-- `search_restaurants`: 按亲子友好、减脂友好、人数、距离、标签筛选餐厅。
-- `check_availability`: 查询活动票量或餐厅座位/候补时间。
-- `get_route`: 返回分段距离、交通方式和时间。
-- `get_weather`: 给户外/室内选择提供约束。
+### 工具分组与权限隔离
 
-Execution tools:
+9 个 LLM 可调用工具按职责分为两组，严格隔离读写权限：
 
-- `book_activity`: 活动/门票 Mock 预订。
-- `book_restaurant`: 餐厅 Mock 订座。
-- `order_delivery`: 蛋糕、鲜花、饮品等补充动作 Mock 下单。
+| 阶段 | 工具 | 权限 |
+|------|------|------|
+| **Planning（5 个只读）** | `search_activities`、`search_restaurants`、`check_availability`、`get_route`、`get_weather` | 查询 |
+| **Execution（4 个写操作）** | `book_activity`、`book_restaurant`、`order_delivery`、`generate_share_text` | 预订/下单 |
 
-## 异常处理机制
+规划阶段 LLM 无法触发预订，执行阶段无法重新搜索。
 
-当前实现已覆盖工具级错误返回和基础状态机保护；Demo fallback 可在无 API Key 时跑通闭环。下一步最高优先级是把“失败后自动重规划”从 prompt 约束下沉为代码策略：餐厅无位换同区餐厅，活动满员换同类型活动，预算/距离/年龄冲突必须给出解释。
+### 典型调用序列
 
-## Demo 流程
+```text
+get_weather → search_activities → search_restaurants → check_availability → get_route
+（用户确认后）
+→ book_activity → book_restaurant → [order_delivery] → generate_share_text
+```
 
-1. 输入家庭或朋友自然语言目标。
-2. 右侧/消息流展示活动搜索、餐厅搜索、可用性查询、路线规划。
-3. 页面生成 4-6 小时行程卡。
-4. 点击确认方案。
-5. 展示 Mock 预约结果和确认号。
-6. 一键复制发给老婆/朋友的分享文案。
+### 守卫机制
 
-## 商业价值
+- **ID 前缀校验**：`book_restaurant` 只接受 `r-` 前缀 ID，`book_activity` 只接受 `a-` 前缀，防止误操作。
+- **重复预订去重**：已预订的 venue 不会被再次预订。
+- **10% 模拟失败率**：预订工具随机返回"系统繁忙"，用于验证恢复策略。
 
-该 Agent 把本地生活平台从“流量分发”推进到“任务完成”。它能提升餐厅订座、活动票、配送增购的组合转化，并通过家庭/朋友场景提高用户复购和平台心智：用户不是来查信息，而是来把周末安排交给平台完成。
+## 三、异常处理机制
+
+### 预订失败的三级恢复策略
+
+当预订失败时，`recoverBookingFailure` 按距离优先级搜索替代场地：
+
+1. **同区优先**：在失败场地的同行政区搜索同类型替代。
+2. **近区备选**：同区无结果时，按距离矩阵选取最近邻区。
+3. **跨区兜底**：以上均失败，返回 `NO_RECOVERY_OPTIONS` 状态。
+
+每次恢复操作都记录 trace 日志（含 recoveryType 标签），前端据此渲染恢复故事卡片。
+
+### Demo 模式 Fallback
+
+当 `DEEPSEEK_API_KEY` 未配置时，系统自动切换到 Demo 模式：使用确定性闭环引擎完成全流程，通过 90ms/60ms 延迟模拟工具调用过程。确保无 API Key 时仍可跑通完整闭环演示。
+
+### 状态机保护
+
+`transitionState` 函数在每次状态变更前校验 `VALID_TRANSITIONS` 表，非法转移返回 `{ok: false, error: string}` 而非抛异常。这防止了如 EXECUTING 阶段接收新用户消息等竞态场景。

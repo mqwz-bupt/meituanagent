@@ -2,7 +2,7 @@
 
 > 赛题 06：本地探索——周末闲时活动规划 | 美团 AI Hackathon
 
-**在线体验：[https://meituanagent.zeabur.app/](https://meituanagent.zeabur.app/)**
+**在线体验：[https://meituanagent.zeabur.app/](https://meituanagent.zeabur.app/)** | **设计文档：[docs/hackathon-demo-brief.md](docs/hackathon-demo-brief.md)**
 
 一句话定位：把”今天下午想出去玩几个小时”变成可执行的本地生活订单链路。
 
@@ -163,25 +163,39 @@ flowchart TD
 
 ```text
 .
-├── public/                  # Web Demo 静态页面
+├── public/                     # Web Demo 静态页面（index.html + app.js）
 ├── src/
-│   ├── agent/               # 规划、执行、闭环 Demo、局部重规划和路由
-│   │   ├── closed-loop.ts   # 闭环执行引擎、约束解释、失败恢复、商业转化
-│   │   ├── demo.ts          # 无 API Key 时的本地可演示路径
-│   │   ├── planning.ts      # LLM Planning Agent 入口
-│   │   ├── execution.ts     # 执行 Agent 入口
-│   │   └── revision.ts      # 外部反馈后的局部重规划
-│   ├── mock/                # 餐厅、活动、优惠券和可用性 Mock 数据
-│   ├── tools/               # AI SDK 工具定义、执行处理和注册
-│   ├── __tests__/           # 单元/集成测试
-│   ├── server.ts            # Express + SSE 服务入口
-│   ├── state.ts             # 会话状态机
-│   └── types.ts             # 核心类型定义
+│   ├── agent/                  # 规划、执行、闭环 Demo、局部重规划和路由
+│   │   ├── prompts/            # LLM 系统提示词（规划/执行/场景）
+│   │   │   ├── planning.ts     # Plan-and-Solve 五阶段规划提示词
+│   │   │   ├── execution.ts    # 执行阶段提示词
+│   │   │   └── scenarios.ts    # 场景定义
+│   │   ├── closed-loop.ts      # 闭环执行引擎、约束解释、失败恢复、商业转化
+│   │   ├── demo.ts             # 无 API Key 时的本地可演示路径
+│   │   ├── planning.ts         # LLM Planning Agent 入口
+│   │   ├── execution.ts        # 执行 Agent 入口
+│   │   ├── revision.ts         # 外部反馈后的局部重规划
+│   │   └── router.ts           # 会话状态机路由分发
+│   ├── mock/                   # 餐厅、活动、优惠券和可用性 Mock 数据
+│   ├── tools/                  # AI SDK 工具定义、执行处理和注册
+│   │   ├── definitions.ts      # 9 个工具 Zod schema 定义
+│   │   ├── handlers.ts         # 工具执行处理函数
+│   │   └── registry.ts         # Planning/Execution 工具分组注册
+│   ├── __tests__/              # 单元/集成测试（11 个测试文件）
+│   ├── server.ts               # Express + SSE 服务入口
+│   ├── state.ts                # 会话状态机与意图检测
+│   ├── district.ts             # 北京 12 区距离矩阵与地理聚类
+│   └── types.ts                # 核心类型定义
 ├── docs/
-│   ├── hackathon-demo-brief.md
-│   ├── architecture.md
-│   └── eval-rubric-and-tests.md
+│   ├── hackathon-demo-brief.md # ⭐ 设计文档（赛题交付物）
+│   ├── architecture.md         # 详细架构文档
+│   ├── eval-rubric-and-tests.md # 评分标准与测试说明
+│   ├── benchmark.md            # 赛题评分维度
+│   └── question.md             # 原始赛题要求
+├── tests/
+│   └── e2e/                    # Playwright E2E 测试
 ├── package.json
+├── tsconfig.json
 ├── vitest.config.ts
 └── playwright.config.ts
 ```
