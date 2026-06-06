@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>美团活动规划助手</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="header">
+    <div class="header-icon">🎯</div>
+    <div class="header-text">
+      <h1>美团活动规划助手</h1>
+      <p class="header-sub">告诉我你想怎么玩，帮你安排一切</p>
+    </div>
+  </header>
+
+  <div class="app-body">
+    <div class="chat-column">
+      <main class="chat-area" id="chatArea">
+        <div class="welcome">
+          <div class="welcome-icon">🤖</div>
+          <p>你好！我是美团活动规划助手。</p>
+          <p>告诉我你的需求，比如：</p>
+          <div class="suggest-chips">
+            <button class="chip" data-msg="今天下午想带5岁孩子和老婆出去玩，老婆在减肥">家庭出游</button>
+            <button class="chip" data-msg="下午和3个朋友出去玩，4个人2男2女">朋友聚会</button>
+            <button class="chip" data-msg="想和女朋友约个会，下午有空">情侣约会</button>
+            <button class="chip" data-msg="一个人下午没事，想出去转转">独自出行</button>
+            <button class="chip demo-chip" data-testid="mock-restaurant-failure" data-msg="今天下午想带5岁孩子和老婆出去玩，老婆在减肥，别离家太远。请模拟餐厅无位。">演示餐厅无座恢复</button>
+          </div>
+        </div>
+      </main>
+
+      <div class="plan-area" id="planArea" hidden></div>
+
+      <footer class="input-bar">
+        <div class="input-wrap">
+          <textarea id="msgInput" rows="1" placeholder="说说你想怎么玩..." maxlength="2000"></textarea>
+          <button id="sendBtn" aria-label="发送">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" fill="currentColor"/></svg>
+          </button>
+        </div>
+      </footer>
+    </div>
+
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-panel" id="weatherPanel"></div>
+      <div class="sidebar-panel" id="routePanel"></div>
+      <div class="sidebar-panel" id="bookingPanel"></div>
+      <div class="sidebar-panel" id="conversionPanel"></div>
+      <div class="sidebar-panel" id="constraintPanel"></div>
+      <div class="sidebar-panel" id="recoveryPanel"></div>
+      <div class="sidebar-panel" id="timelinePanel"></div>
+    </aside>
+  </div>
+
+  <button class="sidebar-toggle" id="sidebarToggle" hidden>详情</button>
+  <div class="toast" id="toast" hidden></div>
+
+  <script src="app.js"></script>
+</body>
+</html>

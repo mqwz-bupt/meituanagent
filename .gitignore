@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.env
+*.js.map
+.claude/
+*.log
+playwright-report/
+test-results/
+foundation question.txt

@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>行程卡片风格选择器</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: #f0f0f0; color: #1a1a1a; padding: 20px;
+    }
+    h1 { text-align: center; font-size: 22px; margin-bottom: 6px; }
+    .subtitle { text-align: center; color: #666; font-size: 14px; margin-bottom: 24px; }
+    .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; max-width: 820px; margin: 0 auto; }
+    @media (max-width: 700px) { .grid { grid-template-columns: 1fr; } }
+    .panel { background: #fff; border-radius: 12px; padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,.08); }
+    .panel-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+    .panel-title { font-size: 15px; font-weight: 700; }
+    .panel-tag { font-size: 11px; padding: 3px 8px; border-radius: 10px; background: #FFD100; font-weight: 600; }
+
+    /* ===== A: 美团原生风 ===== */
+    .style-a .plan-card { border: 1px solid #eee; border-radius: 12px; overflow: hidden; }
+    .style-a .plan-header { background: #FFF3CC; padding: 10px 14px; font-weight: 700; font-size: 15px; }
+    .style-a .plan-item { display: flex; gap: 12px; padding: 12px 14px; border-bottom: 1px solid #f0f0f0; align-items: flex-start; }
+    .style-a .plan-item:last-of-type { border-bottom: none; }
+    .style-a .plan-time { flex-shrink: 0; font-size: 13px; font-weight: 600; color: #666; min-width: 72px; padding-top: 2px; }
+    .style-a .plan-detail h4 { font-size: 14px; }
+    .style-a .plan-detail p { font-size: 12px; color: #666; margin-top: 2px; }
+    .style-a .plan-footer { padding: 10px 14px; border-top: 1px solid #f0f0f0; font-size: 13px; color: #666; }
+    .style-a .btn-row { display: flex; gap: 8px; margin-top: 12px; }
+    .style-a .btn { flex: 1; padding: 10px 0; border: none; border-radius: 20px; font-size: 14px; font-weight: 600; cursor: pointer; text-align: center; }
+    .style-a .btn-primary { background: #FFD100; color: #1a1a1a; }
+    .style-a .btn-secondary { background: #f5f5f5; color: #1a1a1a; }
+    .style-a .booking-id { font-size: 11px; color: #2e7d32; margin-top: 2px; }
+    .style-a .booked .plan-time::after { content: ' ✓'; color: #2e7d32; font-size: 14px; }
+
+    /* ===== B: Apple Maps 时间线风 ===== */
+    .style-b { background: #1c1c1e; color: #fff; border-radius: 16px; }
+    .style-b .plan-card { padding: 4px 0; }
+    .style-b .plan-header { padding: 10px 16px 16px; font-size: 17px; font-weight: 700; }
+    .style-b .plan-header small { display: block; font-size: 12px; color: #aaa; font-weight: 400; margin-top: 2px; }
+    .style-b .timeline { position: relative; padding-left: 48px; }
+    .style-b .timeline::before { content: ''; position: absolute; left: 22px; top: 24px; bottom: 24px; width: 2px; background: linear-gradient(to bottom, #FFD100, #FF6B6B, #4FC3F7); border-radius: 1px; }
+    .style-b .plan-item { position: relative; padding: 12px 16px 16px 0; }
+    .style-b .plan-item::before { content: ''; position: absolute; left: -30px; top: 16px; width: 12px; height: 12px; border-radius: 50%; background: #FFD100; border: 2px solid #1c1c1e; }
+    .style-b .plan-item:nth-child(2)::before { background: #FF6B6B; }
+    .style-b .plan-item:nth-child(3)::before { background: #4FC3F7; }
+    .style-b .plan-time { font-size: 12px; color: #aaa; font-weight: 500; margin-bottom: 4px; }
+    .style-b .plan-detail h4 { font-size: 15px; color: #fff; }
+    .style-b .plan-detail p { font-size: 12px; color: #aaa; margin-top: 2px; }
+    .style-b .plan-detail .cost { color: #FFD100; font-weight: 600; }
+    .style-b .plan-footer { padding: 12px 16px; border-top: 1px solid #333; font-size: 13px; color: #aaa; display: flex; justify-content: space-between; }
+    .style-b .btn-row { display: flex; gap: 8px; margin-top: 12px; padding: 0 16px 8px; }
+    .style-b .btn { flex: 1; padding: 10px 0; border: none; border-radius: 12px; font-size: 14px; font-weight: 600; cursor: pointer; text-align: center; }
+    .style-b .btn-primary { background: #FFD100; color: #1a1a1a; }
+    .style-b .btn-secondary { background: #333; color: #fff; }
+    .style-b .booked::after { content: '✓ 已预订'; position: absolute; right: 16px; top: 14px; font-size: 12px; color: #4CAF50; background: #1b3a1b; padding: 2px 8px; border-radius: 8px; }
+
+    /* ===== C: 小红书卡片风 ===== */
+    .style-c .plan-card { border-radius: 20px; overflow: hidden; background: linear-gradient(135deg, #FFF9E6 0%, #FFF0F5 100%); border: 1px solid #f0e0c0; }
+    .style-c .plan-header { padding: 14px 16px; font-size: 16px; font-weight: 700; }
+    .style-c .plan-header .emoji-title { font-size: 20px; }
+    .style-c .plan-item-wrap { padding: 4px 14px 8px; }
+    .style-c .plan-item { background: #fff; border-radius: 14px; padding: 12px 14px; margin-bottom: 8px; box-shadow: 0 1px 4px rgba(0,0,0,.06); }
+    .style-c .plan-time { font-size: 12px; color: #999; margin-bottom: 4px; }
+    .style-c .plan-detail h4 { font-size: 14px; }
+    .style-c .plan-detail .meta { font-size: 12px; color: #666; margin-top: 3px; }
+    .style-c .tag { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 10px; margin-right: 4px; margin-top: 4px; }
+    .style-c .tag-green { background: #E8F5E9; color: #2E7D32; }
+    .style-c .tag-orange { background: #FFF3E0; color: #E65100; }
+    .style-c .tag-blue { background: #E3F2FD; color: #1565C0; }
+    .style-c .plan-footer { padding: 10px 16px; display: flex; justify-content: space-between; font-size: 14px; font-weight: 600; }
+    .style-c .btn-row { display: flex; gap: 8px; margin: 12px 14px 14px; }
+    .style-c .btn { flex: 1; padding: 10px 0; border: none; border-radius: 20px; font-size: 14px; font-weight: 600; cursor: pointer; text-align: center; }
+    .style-c .btn-primary { background: linear-gradient(90deg, #FFD100, #FFA726); color: #1a1a1a; }
+    .style-c .btn-secondary { background: #fff; color: #666; border: 1px solid #ddd; }
+    .style-c .booked-badge { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 10px; background: #E8F5E9; color: #2E7D32; margin-top: 4px; }
+
+    /* ===== D: 微信小程序风 ===== */
+    .style-d .plan-card { border-radius: 8px; overflow: hidden; border: 1px solid #e5e5e5; }
+    .style-d .plan-header { padding: 12px 14px; font-size: 15px; font-weight: 700; border-bottom: 1px solid #f0f0f0; }
+    .style-d .plan-item { display: flex; gap: 0; border-bottom: 1px solid #f5f5f5; }
+    .style-d .plan-item:last-of-type { border-bottom: none; }
+    .style-d .plan-left-bar { width: 4px; background: #FFD100; flex-shrink: 0; }
+    .style-d .plan-item:nth-child(2) .plan-left-bar { background: #FF9800; }
+    .style-d .plan-item:nth-child(3) .plan-left-bar { background: #4CAF50; }
+    .style-d .plan-item-inner { padding: 10px 14px; flex: 1; }
+    .style-d .plan-time { font-size: 12px; color: #999; margin-bottom: 3px; }
+    .style-d .plan-detail h4 { font-size: 14px; }
+    .style-d .plan-detail p { font-size: 12px; color: #666; margin-top: 2px; }
+    .style-d .plan-footer { padding: 10px 14px; border-top: 1px solid #f0f0f0; font-size: 13px; color: #666; }
+    .style-d .btn-row { display: flex; gap: 8px; margin-top: 12px; }
+    .style-d .btn { flex: 1; padding: 10px 0; border: none; border-radius: 4px; font-size: 14px; font-weight: 600; cursor: pointer; text-align: center; }
+    .style-d .btn-primary { background: #FFD100; color: #1a1a1a; }
+    .style-d .btn-secondary { background: #f5f5f5; color: #1a1a1a; }
+    .style-d .booked-bar { background: #E8F5E9; padding: 6px 14px; font-size: 12px; color: #2E7D32; }
+
+    /* === 投票区 === */
+    .vote-section { max-width: 820px; margin: 32px auto 0; text-align: center; }
+    .vote-section h2 { font-size: 18px; margin-bottom: 12px; }
+    .vote-btn { display: inline-block; padding: 10px 28px; border: 2px solid #FFD100; border-radius: 20px; background: #fff; font-size: 14px; font-weight: 600; cursor: pointer; margin: 4px; transition: all .15s; }
+    .vote-btn:hover, .vote-btn.active { background: #FFD100; }
+    .vote-hint { color: #999; font-size: 13px; margin-top: 8px; }
+  </style>
+</head>
+<body>
+
+<h1>🎨 行程卡片风格选择器</h1>
+<p class="subtitle">四种风格使用相同的方案数据 — 点击底部投票选择</p>
+
+<div class="grid">
+
+  <!-- A: 美团原生风 -->
+  <div class="panel style-a" data-style="A">
+    <div class="panel-header">
+      <span class="panel-title">A. 美团 APP 原生风</span>
+      <span class="panel-tag">当前方案</span>
+    </div>
+    <div class="plan-card">
+      <div class="plan-header">朝阳公园亲子漫游 + 蓝色港湾日料晚餐</div>
+      <div class="plan-item">
+        <div class="plan-time">14:00-16:30</div>
+        <div class="plan-detail">
+          <h4>草坪野餐、喂鸭子、逛泡泡玛特乐园</h4>
+          <p>朝阳公园 · 门票5元/人，共15元</p>
+          <p>四环内最大公园，孩子能跑能玩</p>
+        </div>
+      </div>
+      <div class="plan-item">
+        <div class="plan-time">16:30-16:45</div>
+        <div class="plan-detail">
+          <h4>沿亮马河步行至蓝色港湾</h4>
+          <p>朝阳公园→蓝色港湾 · 免费，步行15分钟</p>
+          <p>河边绿道风景好，顺便散步消食</p>
+        </div>
+      </div>
+      <div class="plan-item">
+        <div class="plan-time">17:00-18:00</div>
+        <div class="plan-detail">
+          <h4>回转寿司晚餐</h4>
+          <p>滨寿司（蓝色港湾店） · 人均150元，共450元</p>
+          <p>寿司低卡健康适合减肥，亲子友好</p>
+        </div>
+      </div>
+      <div class="plan-footer">总计 约465元 · 约4小时</div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary">确认方案，一键预订</button>
+      <button class="btn btn-secondary">我想调整</button>
+    </div>
+  </div>
+
+  <!-- B: Apple Maps 时间线风 -->
+  <div class="panel style-b" data-style="B">
+    <div class="panel-header">
+      <span class="panel-title" style="color:#fff">B. Apple Maps 时间线风</span>
+      <span class="panel-tag">高级感</span>
+    </div>
+    <div class="plan-card">
+      <div class="plan-header">
+        朝阳公园亲子漫游 + 蓝色港湾日料晚餐
+        <small>北京 · 今天下午 · 3人</small>
+      </div>
+      <div class="timeline">
+        <div class="plan-item">
+          <div class="plan-time">14:00 – 16:30</div>
+          <div class="plan-detail">
+            <h4>🌿 草坪野餐、喂鸭子</h4>
+            <p>朝阳公园 · <span class="cost">15元</span></p>
+            <p>四环内最大公园，孩子能跑能玩</p>
+          </div>
+        </div>
+        <div class="plan-item">
+          <div class="plan-time">16:30 – 16:45</div>
+          <div class="plan-detail">
+            <h4>🚶 沿亮马河步行</h4>
+            <p>朝阳公园→蓝色港湾 · <span class="cost">免费</span></p>
+            <p>河边绿道风景好，散步消食</p>
+          </div>
+        </div>
+        <div class="plan-item">
+          <div class="plan-time">17:00 – 18:00</div>
+          <div class="plan-detail">
+            <h4>🍣 回转寿司晚餐</h4>
+            <p>滨寿司（蓝色港湾店） · <span class="cost">450元</span></p>
+            <p>低卡健康，亲子友好评分4.6</p>
+          </div>
+        </div>
+      </div>
+      <div class="plan-footer">
+        <span>💰 465元</span>
+        <span>⏰ 约4小时</span>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary">确认预订</button>
+      <button class="btn btn-secondary">我想调整</button>
+    </div>
+  </div>
+
+  <!-- C: 小红书卡片风 -->
+  <div class="panel style-c" data-style="C">
+    <div class="panel-header">
+      <span class="panel-title">C. 小红书卡片风</span>
+      <span class="panel-tag">年轻化</span>
+    </div>
+    <div class="plan-card">
+      <div class="plan-header">
+        <span class="emoji-title">✨</span> 周末亲子计划
+        <br><small style="color:#999;font-weight:400">朝阳公园 → 蓝色港湾</small>
+      </div>
+      <div class="plan-item-wrap">
+        <div class="plan-item">
+          <div class="plan-time">🕐 14:00-16:30</div>
+          <div class="plan-detail">
+            <h4>🌿 草坪野餐、喂鸭子、逛泡泡玛特乐园</h4>
+            <div class="meta">📍 朝阳公园 · 💰 15元</div>
+            <div>
+              <span class="tag tag-green">#适合5岁</span>
+              <span class="tag tag-orange">#户外</span>
+            </div>
+          </div>
+        </div>
+        <div class="plan-item">
+          <div class="plan-time">🚶 16:30-16:45</div>
+          <div class="plan-detail">
+            <h4>沿亮马河步行至蓝色港湾</h4>
+            <div class="meta">📍 朝阳公园→蓝色港湾 · 💰 免费</div>
+            <div>
+              <span class="tag tag-blue">#河边散步</span>
+              <span class="tag tag-green">#消食</span>
+            </div>
+          </div>
+        </div>
+        <div class="plan-item">
+          <div class="plan-time">🍣 17:00-18:00</div>
+          <div class="plan-detail">
+            <h4>回转寿司晚餐</h4>
+            <div class="meta">📍 滨寿司（蓝色港湾店） · 💰 450元</div>
+            <div>
+              <span class="tag tag-green">#低卡健康</span>
+              <span class="tag tag-blue">#亲子友好</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="plan-footer">
+        <span>💰 约465元</span>
+        <span>⏰ 约4小时</span>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary">确认方案，一键预订</button>
+      <button class="btn btn-secondary">我想调整</button>
+    </div>
+  </div>
+
+  <!-- D: 微信小程序风 -->
+  <div class="panel style-d" data-style="D">
+    <div class="panel-header">
+      <span class="panel-title">D. 微信小程序卡片风</span>
+      <span class="panel-tag">极简</span>
+    </div>
+    <div class="plan-card">
+      <div class="plan-header">朝阳公园亲子漫游 + 蓝色港湾日料晚餐</div>
+      <div class="plan-item">
+        <div class="plan-left-bar"></div>
+        <div class="plan-item-inner">
+          <div class="plan-time">14:00-16:30</div>
+          <div class="plan-detail">
+            <h4>草坪野餐、喂鸭子、逛泡泡玛特乐园</h4>
+            <p>朝阳公园 · 门票5元/人，共15元</p>
+            <p>四环内最大公园，孩子能跑能玩</p>
+          </div>
+        </div>
+      </div>
+      <div class="plan-item">
+        <div class="plan-left-bar"></div>
+        <div class="plan-item-inner">
+          <div class="plan-time">16:30-16:45</div>
+          <div class="plan-detail">
+            <h4>沿亮马河步行至蓝色港湾</h4>
+            <p>朝阳公园→蓝色港湾 · 免费，步行15分钟</p>
+            <p>河边绿道风景好，顺便散步消食</p>
+          </div>
+        </div>
+      </div>
+      <div class="plan-item">
+        <div class="plan-left-bar"></div>
+        <div class="plan-item-inner">
+          <div class="plan-time">17:00-18:00</div>
+          <div class="plan-detail">
+            <h4>回转寿司晚餐</h4>
+            <p>滨寿司（蓝色港湾店） · 人均150元，共450元</p>
+            <p>寿司低卡健康适合减肥，亲子友好</p>
+          </div>
+        </div>
+      </div>
+      <div class="plan-footer">总计 约465元 · 约4小时</div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary">确认方案，一键预订</button>
+      <button class="btn btn-secondary">我想调整</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- === 预订成功态 === -->
+<h2 style="text-align:center; margin-top:36px; font-size:18px;">预订成功后的样式</h2>
+<div class="grid" style="margin-top:16px;">
+
+  <!-- A booked -->
+  <div class="panel style-a">
+    <div class="panel-header"><span class="panel-title">A. 预订成功</span></div>
+    <div class="plan-card">
+      <div class="plan-header">朝阳公园亲子漫游 + 蓝色港湾日料晚餐</div>
+      <div class="plan-item booked">
+        <div class="plan-time">14:00-16:30</div>
+        <div class="plan-detail">
+          <h4>草坪野餐、喂鸭子</h4>
+          <p>朝阳公园 · 15元</p>
+          <div class="booking-id">✅ BK20250718A</div>
+        </div>
+      </div>
+      <div class="plan-item booked">
+        <div class="plan-time">16:30-16:45</div>
+        <div class="plan-detail">
+          <h4>步行至蓝色港湾</h4>
+          <p>免费</p>
+          <div class="booking-id">✅ 免费行程</div>
+        </div>
+      </div>
+      <div class="plan-item booked">
+        <div class="plan-time">17:00-18:00</div>
+        <div class="plan-detail">
+          <h4>回转寿司晚餐</h4>
+          <p>滨寿司 · 450元</p>
+          <div class="booking-id">✅ BK20250718B</div>
+        </div>
+      </div>
+      <div class="plan-footer">总计 约465元 · 约4小时</div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-secondary">复制分享文案</button>
+      <button class="btn btn-primary">再来一次</button>
+    </div>
+  </div>
+
+  <!-- B booked -->
+  <div class="panel style-b">
+    <div class="panel-header"><span class="panel-title" style="color:#fff">B. 预订成功</span></div>
+    <div class="plan-card">
+      <div class="plan-header">朝阳公园亲子漫游 <small>北京 · 今天 · 3人</small></div>
+      <div class="timeline">
+        <div class="plan-item booked"><div class="plan-time">14:00 – 16:30</div><div class="plan-detail"><h4>🌿 草坪野餐</h4><p>朝阳公园 · <span class="cost">15元</span></p></div></div>
+        <div class="plan-item booked"><div class="plan-time">16:30 – 16:45</div><div class="plan-detail"><h4>🚶 沿亮马河步行</h4><p><span class="cost">免费</span></p></div></div>
+        <div class="plan-item booked"><div class="plan-time">17:00 – 18:00</div><div class="plan-detail"><h4>🍣 回转寿司</h4><p>滨寿司 · <span class="cost">450元</span></p></div></div>
+      </div>
+      <div class="plan-footer"><span>💰 465元</span><span>⏰ 4小时</span></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-secondary">复制分享文案</button>
+      <button class="btn btn-primary">再来一次</button>
+    </div>
+  </div>
+
+  <!-- C booked -->
+  <div class="panel style-c">
+    <div class="panel-header"><span class="panel-title">C. 预订成功</span></div>
+    <div class="plan-card">
+      <div class="plan-header"><span class="emoji-title">🎉</span> 全部预订成功！</div>
+      <div class="plan-item-wrap">
+        <div class="plan-item"><div class="plan-time">🕐 14:00-16:30</div><div class="plan-detail"><h4>🌿 草坪野餐</h4><div class="meta">📍 朝阳公园 · 💰 15元</div><span class="booked-badge">✅ BK20250718A</span></div></div>
+        <div class="plan-item"><div class="plan-time">🚶 16:30-16:45</div><div class="plan-detail"><h4>沿亮马河步行</h4><div class="meta">免费</div><span class="booked-badge">✅ 免费行程</span></div></div>
+        <div class="plan-item"><div class="plan-time">🍣 17:00-18:00</div><div class="plan-detail"><h4>回转寿司</h4><div class="meta">📍 滨寿司 · 💰 450元</div><span class="booked-badge">✅ BK20250718B</span></div></div>
+      </div>
+      <div class="plan-footer"><span>💰 465元</span><span>⏰ 4小时</span></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-secondary">复制分享文案</button>
+      <button class="btn btn-primary">再来一次</button>
+    </div>
+  </div>
+
+  <!-- D booked -->
+  <div class="panel style-d">
+    <div class="panel-header"><span class="panel-title">D. 预订成功</span></div>
+    <div class="plan-card">
+      <div class="plan-header">朝阳公园亲子漫游 + 蓝色港湾日料晚餐</div>
+      <div class="plan-item"><div class="plan-left-bar" style="background:#4CAF50"></div><div class="plan-item-inner"><div class="plan-time">14:00-16:30</div><div class="plan-detail"><h4>草坪野餐、喂鸭子</h4><p>朝阳公园 · 15元</p></div></div></div>
+      <div class="plan-item"><div class="plan-left-bar" style="background:#4CAF50"></div><div class="plan-item-inner"><div class="plan-time">16:30-16:45</div><div class="plan-detail"><h4>步行至蓝色港湾</h4><p>免费</p></div></div></div>
+      <div class="plan-item"><div class="plan-left-bar" style="background:#4CAF50"></div><div class="plan-item-inner"><div class="plan-time">17:00-18:00</div><div class="plan-detail"><h4>回转寿司</h4><p>滨寿司 · 450元</p></div></div></div>
+      <div class="booked-bar">✅ 3/3 全部预订成功</div>
+      <div class="plan-footer">总计 约465元 · 约4小时</div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-secondary">复制分享文案</button>
+      <button class="btn btn-primary">再来一次</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- === 投票 === -->
+<div class="vote-section">
+  <h2>你选哪个？</h2>
+  <button class="vote-btn" data-vote="A" onclick="vote('A')">A. 美团原生风</button>
+  <button class="vote-btn" data-vote="B" onclick="vote('B')">B. Apple 时间线</button>
+  <button class="vote-btn" data-vote="C" onclick="vote('C')">C. 小红书卡片</button>
+  <button class="vote-btn" data-vote="D" onclick="vote('D')">D. 微信小程序</button>
+  <p class="vote-hint">选择后告诉我，我会基于该风格实施 Phase 9</p>
+</div>
+
+<script>
+  function vote(s) {
+    document.querySelectorAll('.vote-btn').forEach(function(b) { b.classList.remove('active'); });
+    document.querySelector('.vote-btn[data-vote="'+s+'"]').classList.add('active');
+    document.querySelectorAll('.panel[data-style]').forEach(function(p) { p.style.outline = 'none'; });
+    var t = document.querySelector('.panel[data-style="'+s+'"]');
+    if (t) t.style.outline = '3px solid #FFD100';
+  }
+</script>
+</body>
+</html>
